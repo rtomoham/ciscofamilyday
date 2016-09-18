@@ -1,10 +1,11 @@
-import thread
+import threading
 import time
 
 # Piano Stairs V4 - > Very Basic PIN detection and sound Play with interruptions and threading!#Carles cferrate@cisco.com
 
 #Import library for I/O pins
 import RPi.GPIO as GPIO
+#from EmulatorGUI import GPIO
 import time
 
 #Import library for playing audio, init audio and load files
@@ -48,43 +49,36 @@ input_value2 = GPIO.input(22)
 input_value3 = GPIO.input(24)
 input_value4 = GPIO.input(26)
 
-
 # Define a function per note -> Expect name( do, re mi, fa .. and INPUT pin)
-
 def note( Name, pin):
-	print"%s is pin %s" % (Name, pin)
- 	sound = pygame.mixer.Sound("%s2.wav" % (Name))
-	#sound.play()
- 	while(1):  
-		#Filtering too fast signals!
- 		#GPIO.wait_for_edge(pin, GPIO.RISING)
-               	time_stamp = time.time()
-		time_now = time_stamp
-		while(time_now - time_stamp <0.0750) and (GPIO.input(pin)==1):
-			time_now = time.time()
-		#time.sleep(0.01)
-		if(GPIO.input(pin)==1):
-                	#GPIO.output(12, GPIO.HIGH)
-                     	sound.play()
-                       	print " %s " % (Name)
-                       	GPIO.wait_for_edge(pin, GPIO.FALLING)
+#	print "%s is pin %s" % (Name, pin)
+        print(Name + " is pin " + str(pin))
+        sound = pygame.mixer.Sound(Name + ".wav")
+        #sound.play()
+        while True:
+                #Filtering too fast signals!
+                #GPIO.wait_for_edge(pin, GPIO.RISING)
+                time_stamp = time.time()
+                time_now = time_stamp
+                while (time_now - time_stamp <0.0750) and (GPIO.input(pin)==1):
+                        time_now = time.time()
+                #time.sleep(0.01)
+                if (GPIO.input(pin) == 1):
+                        #GPIO.output(12, GPIO.HIGH)
+                        sound.play()
+                        print(Name)
+                        GPIO.wait_for_edge(pin, GPIO.FALLING)
                         time.sleep(0.05)
-
-
-
-
+                        
 # Create threads per note and per sensor
 try:
-	thread.start_new_thread( note, ("do", 18, ) )
-	thread.start_new_thread( note, ("re", 22, ) )
-	thread.start_new_thread( note, ("mi", 24, ) )
-	thread.start_new_thread( note, ("fa", 26, ) )
-
-
-
+        thread.start_new_thread( note, ("do", 18, ) )
+        thread.start_new_thread( note, ("re", 22, ) )
+        thread.start_new_thread( note, ("mi", 24, ) )
+        thread.start_new_thread( note, ("fa", 26, ) )
 
 except:
-   print "Error: unable to start thread"
+        print("Error: unable to start thread")
 
 while 1:
-   pass
+        pass
