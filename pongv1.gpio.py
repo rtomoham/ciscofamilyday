@@ -52,12 +52,12 @@ P2DOWN = K_DOWN
 QUIT = K_ESCAPE
 PAUSE = K_p
 
-def init():
+def init_game():
 	global clock, myfont, screen
+	global ball_pos
 
 	# initialize the game engine
 	pygame.init()
-	
 	pygame.mixer.init()
 		
 	clock = pygame.time.Clock()
@@ -88,6 +88,8 @@ def init():
 	size = [WIDTH, HEIGHT]
 	screen = pygame.display.set_mode(size)
 
+	ball_pos = [WIDTH / 2, HEIGHT / 2]
+
 	pygame.display.set_caption("Pong")
 
 # initialize paddle states
@@ -110,6 +112,28 @@ def playSound(channel):
                         sound = pygame.mixer.Sound(PITCH[i] + ".wav")
                         sound.play()
                         print(PITCH[i])
+
+def playStartBeep(nr):
+	count_down_surface = myfont.render(str(4-nr), 1, BLACK)
+    if (nr < 4):
+        screen.blit(count_down_surface, ball_pos)
+		sound = pygame.mixer.sound("start_beep_0" + str(nr)+ ".wav")
+		sound.play()
+	else:
+		sound = pygame.mixer.sound("start_beep_0" + str(nr)+ ".wav")
+		sound.play()
+
+	# Refresh the screen surface
+    pygame.display.flip()
+	
+def playStartSequence():
+	playStartBeep(1)
+	pygame.time.wait(1000)
+	playStartBeep(2)
+	pygame.time.wait(1000)
+	playStartBeep(3)
+	pygame.time.wait(1000)
+	playStartBeep(4)
 
 def gpioEventHandler1(event):
     if GPIO.input(INPUT_CHANNEL[0]):
@@ -360,7 +384,8 @@ def keyup(key):
 		pause = not pause
 
 # The game's main procedure
-init()
+init_game()
+playStartSequence()
 new_game()
 
 running = True
