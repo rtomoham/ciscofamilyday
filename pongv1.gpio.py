@@ -52,18 +52,25 @@ P2DOWN = K_DOWN
 QUIT = K_ESCAPE
 PAUSE = K_p
 
-def init_game():
+def init():
 	global clock, myfont, screen
 	global ball_pos
+	global soundScore, soundBounce
 
-	# initialize the game engine
-	pygame.init()
+	# First, initialize the mixer, to prevent audio delays
+	# Default buffer size is 4096, I've decreased it to try to reduce delay
+	# (must be a power of 2)
+	pygame.mixer.pre_init(44100, -16, 2, 512)
 	pygame.mixer.init()
+
+        soundScore = pygame.mixer.Sound("score.wav")
+        soundBounce = pygame.mixer.Sound("bounce.wav")
+        
+	# initialize the pygame engine
+	pygame.init()
 		
 	clock = pygame.time.Clock()
 	
-	initPaddleStates()
-
 	myfont = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
 
 	# to use Raspberry Pi board pin numbers
@@ -88,9 +95,18 @@ def init_game():
 	size = [WIDTH, HEIGHT]
 	screen = pygame.display.set_mode(size)
 
-	ball_pos = [WIDTH / 2, HEIGHT / 2]
-
 	pygame.display.set_caption("Pong")
+
+def init_game():
+    global ball_pos, paddles_top, score1, score2
+    
+    initPaddleStates()
+
+    ball_pos = [WIDTH / 2, HEIGHT / 2]
+    paddles_top = [HEIGHT / 2 - PAD_HEIGHT[0] / 2, HEIGHT / 2 - PAD_HEIGHT[1] / 2]
+
+    score1 = 0
+    score2 = 0
 
 # initialize paddle states
 def initPaddleStates():
@@ -112,21 +128,30 @@ def playSound(channel):
                         sound = pygame.mixer.Sound(PITCH[i] + ".wav")
                         sound.play()
                         print(PITCH[i])
+                        
+def playScoreSound(player):
+#    sound = pygame.mixer.Sound("score.wav")
+    soundScore.play()
+
+def playBallBounceSound():
+#    sound = pygame.mixer.Sound("bounce.wav")
+    soundBounce.play()
 
 def playStartBeep(nr):
-	count_down_surface = myfont.render(str(4-nr), 1, BLACK)
+    drawBall()
+    count_down_surface = myfont.render(str(4-nr), 1, BLACK)
     if (nr < 4):
-        screen.blit(count_down_surface, ball_pos)
-		sound = pygame.mixer.sound("start_beep_0" + str(nr)+ ".wav")
-		sound.play()
-	else:
-		sound = pygame.mixer.sound("start_beep_0" + str(nr)+ ".wav")
-		sound.play()
+        screen.blit(count_down_surface, (ball_pos[0]-10, ball_pos[1]-15))
+        sound = pygame.mixer.Sound("start_beep_01.wav")
+    else:
+        sound = pygame.mixer.Sound("start_beep_02.wav")    
+    sound.play()
 
-	# Refresh the screen surface
+    # Refresh the screen surface
     pygame.display.flip()
 	
 def playStartSequence():
+	pygame.time.wait(500)
 	playStartBeep(1)
 	pygame.time.wait(1000)
 	playStartBeep(2)
@@ -134,6 +159,7 @@ def playStartSequence():
 	playStartBeep(3)
 	pygame.time.wait(1000)
 	playStartBeep(4)
+	pygame.time.wait(1000)
 
 def gpioEventHandler1(event):
     if GPIO.input(INPUT_CHANNEL[0]):
@@ -200,10 +226,13 @@ def update_ball():
                 if not ((ball_pos[1] >= paddles_top[0]) and (ball_pos[1] <= paddles_top[0] + PAD_HEIGHT[0])):
                     # nope, so grant right player a point and respawn
                     score2 += 1
+                    playScoreSound(RIGHT)
                     spawn_ball(RIGHT)
                 else:
                     # ball hit a paddle, so increase the speed by 10%
                     increase_ball_speed()
+                    playBallBounceSound()
+                    
         elif (ball_pos[i] >= MAX_COORDINATES[i] - BALL_RADIUS):
             # ball reached either a side or top or bottom
             # i == 0 -> ball reached the right gutter/paddle
@@ -215,10 +244,12 @@ def update_ball():
                 if not ((ball_pos[1] >= paddles_top[1]) and (ball_pos[1] <= paddles_top[1] + PAD_HEIGHT[1])):
                     # nope, so grant left player a point and respawn
                     score1 += 1
+                    playScoreSound(LEFT)
                     spawn_ball(LEFT)
                 else:
                     # ball hit a paddle, so increase the speed by 10%
                     increase_ball_speed()
+                    playBallBounceSound()
 
 def update_paddles():
     # updates the position of the paddles
@@ -238,11 +269,8 @@ def new_game():
     global paddles_top # I prefer to use the tops of the paddles in a list
     global score1, score2  # these are ints
 
-    paddles_top = [HEIGHT / 2 - PAD_HEIGHT[0] / 2, HEIGHT / 2 - PAD_HEIGHT[1] / 2]
-
-    score1 = 0
-    score2 = 0
-
+    init_game()
+    
     spawn_ball(RIGHT)
 
 def updateAll():
@@ -251,6 +279,10 @@ def updateAll():
 
     # update ball
     update_ball()
+
+def drawBall():
+    # draw ball
+    pygame.draw.circle(screen, BALL_COLOR, (int(ball_pos[0]), int(ball_pos[1])), BALL_RADIUS)
 
 def drawAll():
     global score1, score2, paddle1_pos, paddle2_pos, ball_pos, ball_vel
@@ -262,9 +294,8 @@ def drawAll():
     pygame.draw.line(screen, WHITE, [WIDTH / 2, 0], [WIDTH / 2, HEIGHT], 1)
     pygame.draw.line(screen, WHITE, [PAD_WIDTH, 0],[PAD_WIDTH, HEIGHT], 1)
     pygame.draw.line(screen, WHITE, [WIDTH - PAD_WIDTH, 0],[WIDTH - PAD_WIDTH, HEIGHT], 1)
-
-    # draw ball
-    pygame.draw.circle(screen, BALL_COLOR, (int(ball_pos[0]), int(ball_pos[1])), BALL_RADIUS)
+    
+    drawBall()
 
     # draw paddles
     for i in range(0, 2):
@@ -380,20 +411,22 @@ def keyup(key):
             paddles_vel[1] = 0
     elif key == QUIT:
         running = False
-	elif key == PAUSE:
-		pause = not pause
+    elif key == PAUSE:
+        pause = not pause
 
 # The game's main procedure
+init()
 init_game()
+drawAll()
 playStartSequence()
 new_game()
 
 running = True
 pause = False
 while running:
-	if not pause:
-		updateAll()
-		drawAll()
+    if not pause:
+        updateAll()
+        drawAll()
     clock.tick(60)
 
 	# Handle key events
