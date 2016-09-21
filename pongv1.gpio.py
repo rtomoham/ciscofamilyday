@@ -12,7 +12,6 @@ import RPi.GPIO as GPIO
 #from EmulatorGUI import GPIO
 
 # initialize globals - pos and vel encode vertical info for paddles
-DELAY = 0.05
 # GPIO constants
 NUMBER_OF_INPUT_CHANNELS = 4
 INPUT_CHANNEL = (21, 26, 24, 23)
