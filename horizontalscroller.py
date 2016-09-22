@@ -46,12 +46,15 @@ PAD_COLOR = (BLUE, RED, YELLOW, GREEN)	# (P1 color, P2 color)
 LEFT = False
 RIGHT = True
 
+NOISE_FILTER = 50 # wait for 50ms and check if the key is still up (or down)
+
 P1UP = K_w
 P1DOWN = K_s
 P2UP = K_UP
 P2DOWN = K_DOWN
 QUIT = K_ESCAPE
 PAUSE = K_p
+KEYS = [P1UP, P1DOWN, P2UP, P2DOWN]
 
 MAX_BLOCKS = 10
 
@@ -304,29 +307,49 @@ def playStartSequence():
 	pygame.time.wait(1000)
 
 def gpioEventHandler1(event):
-    if GPIO.input(INPUT_CHANNEL[0]):
-        keydown(P1UP)
+    i = 0
+    if GPIO.input(INPUT_CHANNEL[i]):
+    	pygame.time.wait(NOISE_FILTER)
+    	if GPIO.input(INPUT_CHANNEL[i]):
+    		keydown(KEYS[i])
     else:
-        keyup(P1UP)
+    	pygame.time.wait(NOISE_FILTER)
+    	if GPIO.input(INPUT_CHANNEL[i]):
+    		keyup(KEYS[i])
 
 def gpioEventHandler2(event):
-    if GPIO.input(INPUT_CHANNEL[1]):
-        keydown(P1DOWN)
+    i = 1
+    if GPIO.input(INPUT_CHANNEL[i]):
+    	pygame.time.wait(NOISE_FILTER)
+    	if GPIO.input(INPUT_CHANNEL[i]):
+    		keydown(KEYS[i])
     else:
-        keyup(P1DOWN)
+    	pygame.time.wait(NOISE_FILTER)
+    	if GPIO.input(INPUT_CHANNEL[i]):
+    		keyup(KEYS[i])
 
 def gpioEventHandler3(event):
-    if GPIO.input(INPUT_CHANNEL[2]):
-        keydown(P2UP)
+    i = 2
+    if GPIO.input(INPUT_CHANNEL[i]):
+    	pygame.time.wait(NOISE_FILTER)
+    	if GPIO.input(INPUT_CHANNEL[i]):
+    		keydown(KEYS[i])
     else:
-        keyup(P2UP)
+    	pygame.time.wait(NOISE_FILTER)
+    	if GPIO.input(INPUT_CHANNEL[i]):
+    		keyup(KEYS[i])
 
 def gpioEventHandler4(event):
-    if GPIO.input(INPUT_CHANNEL[3]):
-        keydown(P2DOWN)
+    i = 3
+    if GPIO.input(INPUT_CHANNEL[i]):
+    	pygame.time.wait(NOISE_FILTER)
+    	if GPIO.input(INPUT_CHANNEL[i]):
+    		keydown(KEYS[i])
     else:
-        keyup(P2DOWN)
-
+    	pygame.time.wait(NOISE_FILTER)
+    	if GPIO.input(INPUT_CHANNEL[i]):
+    		keyup(KEYS[i])
+    		
 # initialize ball_pos and ball_vel for new bal in middle of table
 # if direction is RIGHT, the ball's velocity is upper right, else upper left
 def spawn_ball(direction):
