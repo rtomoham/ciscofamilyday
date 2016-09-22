@@ -165,7 +165,7 @@ def playStartSequence():
 	pygame.time.wait(1000)
 
 def gpioEventHandler1(event):
-	i = 0
+    i = 0
     if GPIO.input(INPUT_CHANNEL[i]):
     	pygame.time.wait(NOISE_FILTER)
     	if GPIO.input(INPUT_CHANNEL[i]):
@@ -176,7 +176,7 @@ def gpioEventHandler1(event):
     		keyup(KEYS[i])
 
 def gpioEventHandler2(event):
-	i = 1
+    i = 1
     if GPIO.input(INPUT_CHANNEL[i]):
     	pygame.time.wait(NOISE_FILTER)
     	if GPIO.input(INPUT_CHANNEL[i]):
@@ -187,7 +187,7 @@ def gpioEventHandler2(event):
     		keyup(KEYS[i])
 
 def gpioEventHandler3(event):
-	i = 2
+    i = 2
     if GPIO.input(INPUT_CHANNEL[i]):
     	pygame.time.wait(NOISE_FILTER)
     	if GPIO.input(INPUT_CHANNEL[i]):
@@ -198,7 +198,7 @@ def gpioEventHandler3(event):
     		keyup(KEYS[i])
 
 def gpioEventHandler4(event):
-	i = 3
+    i = 3
     if GPIO.input(INPUT_CHANNEL[i]):
     	pygame.time.wait(NOISE_FILTER)
     	if GPIO.input(INPUT_CHANNEL[i]):
