@@ -14,7 +14,7 @@ import RPi.GPIO as GPIO
 # If a player touches the floor or ceiling, he automatically moves left at this rate
 STUCK_TO_FLOOR_OR_CEILING_SPEED = 2
 BLOCK_START_SPEED = 5
-SPEED_UP_FACTOR = 0.01
+SPEED_UP_FACTOR = 1.0001
 # initialize globals - pos and vel encode vertical info for paddles
 DELAY = 0.05
 # GPIO constants
@@ -231,7 +231,7 @@ def init():
 def init_game():
     global ball_pos, paddles_top, score1, score2
     global characters, blocks
-	global blockSpeed
+    global blockSpeed
     
     initPaddleStates()
 
@@ -244,7 +244,7 @@ def init_game():
     characters = []
     blocks = []
 
-	blockSpeed = BLOCK_START_SPEED
+    blockSpeed = BLOCK_START_SPEED
 	
     i = 0
     while i < 4:
@@ -448,9 +448,9 @@ def updateCharacters():
         i += 1
 
 def updateAll():
-	global blockSpeed
+    global blockSpeed
 	
-	blockSpeed = blockSpeed * SPEED_UP_FACTOR
+    blockSpeed = blockSpeed * SPEED_UP_FACTOR
 	
     updateCharacters()
     updateBlocks(int(blockSpeed))
