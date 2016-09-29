@@ -164,49 +164,27 @@ def playStartSequence():
 	playStartBeep(4)
 	pygame.time.wait(1000)
 
-def gpioEventHandler1(event):
-    i = 0
-    if GPIO.input(INPUT_CHANNEL[i]):
+def gpioEventHandler(channel):
+    if GPIO.input(INPUT_CHANNEL[channel]):
     	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keydown(KEYS[i])
+    	if GPIO.input(INPUT_CHANNEL[channel]):
+    		keydown(KEYS[channel])
     else:
     	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keyup(KEYS[i])
+    	if not GPIO.input(INPUT_CHANNEL[channel]):
+    		keyup(KEYS[channel])
+	
+def gpioEventHandler1(event):
+    gpioEventHandler(0)
 
 def gpioEventHandler2(event):
-    i = 1
-    if GPIO.input(INPUT_CHANNEL[i]):
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keydown(KEYS[i])
-    else:
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keyup(KEYS[i])
+    gpioEventHandler(1)
 
 def gpioEventHandler3(event):
-    i = 2
-    if GPIO.input(INPUT_CHANNEL[i]):
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keydown(KEYS[i])
-    else:
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keyup(KEYS[i])
+    gpioEventHandler(2)
 
 def gpioEventHandler4(event):
-    i = 3
-    if GPIO.input(INPUT_CHANNEL[i]):
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keydown(KEYS[i])
-    else:
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keyup(KEYS[i])
+    gpioEventHandler(3)
 
 # initialize ball_pos and ball_vel for new bal in middle of table
 # if direction is RIGHT, the ball's velocity is upper right, else upper left
