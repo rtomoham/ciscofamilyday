@@ -11,6 +11,10 @@ from pygame.locals import *
 import RPi.GPIO as GPIO
 #from EmulatorGUI import GPIO
 
+# If a player touches the floor or ceiling, he automatically moves left at this rate
+STUCK_TO_FLOOR_OR_CEILING_SPEED = 2
+BLOCK_START_SPEED = 5
+SPEED_UP_FACTOR = 0.01
 # initialize globals - pos and vel encode vertical info for paddles
 DELAY = 0.05
 # GPIO constants
@@ -43,6 +47,7 @@ RED =  (255, 105, 97)
 YELLOW = (250, 250, 150)
 BALL_COLOR = GREEN
 PAD_COLOR = (BLUE, RED, YELLOW, GREEN)	# (P1 color, P2 color)
+BLOCK_COLOR = WHITE
 LEFT = False
 RIGHT = True
 
@@ -59,14 +64,14 @@ KEYS = [P1UP, P1DOWN, P2UP, P2DOWN]
 MAX_BLOCKS = 10
 
 class Block:
-    def __init__(self, nr, x, y, width, height):
+    def __init__(self, nr, x, y, width, height, speed):
         self.nr = nr
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.color = WHITE
-        self.speed = 1
+        self.color = BLOCK_COLOR
+        self.speed = speed
 
     def draw(self):
         if self.x + self.width <= WIDTH:
@@ -95,7 +100,8 @@ class Block:
                         return True
         return False
         
-    def update(self):
+    def update(self, newSpeed):
+	self.speed = newSpeed
         self.x -= self.speed
         
     def movedOffScreen(self):
@@ -160,9 +166,13 @@ class Character:
             if (self.up):
                 if self.y >= 2:
                     self.y -= 2
+		else:
+			self.x -= STUCK_TO_FLOOR_OR_CEILING_SPEED
             else:
                 if self.y + self.height < HEIGHT:
                     self.y += 1
+		else:
+			self.x -= STUCK_TO_FLOOR_OR_CEILING_SPEED
                     
             i = 0
             while i < len(blocks):
@@ -221,6 +231,7 @@ def init():
 def init_game():
     global ball_pos, paddles_top, score1, score2
     global characters, blocks
+	global blockSpeed
     
     initPaddleStates()
 
@@ -233,6 +244,8 @@ def init_game():
     characters = []
     blocks = []
 
+	blockSpeed = BLOCK_START_SPEED
+	
     i = 0
     while i < 4:
         randomY = random.randrange(100, HEIGHT - 100)
@@ -306,49 +319,27 @@ def playStartSequence():
 	playStartBeep(4)
 	pygame.time.wait(1000)
 
-def gpioEventHandler1(event):
-    i = 0
-    if GPIO.input(INPUT_CHANNEL[i]):
+def gpioEventHandler(channel):
+    if GPIO.input(INPUT_CHANNEL[channel]):
     	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keydown(KEYS[i])
+    	if GPIO.input(INPUT_CHANNEL[channel]):
+    		keydown(KEYS[channel])
     else:
     	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keyup(KEYS[i])
+    	if not GPIO.input(INPUT_CHANNEL[channel]):
+    		keyup(KEYS[channel])
+	
+def gpioEventHandler1(event):
+    gpioEventHandler(0)
 
 def gpioEventHandler2(event):
-    i = 1
-    if GPIO.input(INPUT_CHANNEL[i]):
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keydown(KEYS[i])
-    else:
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keyup(KEYS[i])
+    gpioEventHandler(1)
 
 def gpioEventHandler3(event):
-    i = 2
-    if GPIO.input(INPUT_CHANNEL[i]):
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keydown(KEYS[i])
-    else:
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keyup(KEYS[i])
+    gpioEventHandler(2)
 
 def gpioEventHandler4(event):
-    i = 3
-    if GPIO.input(INPUT_CHANNEL[i]):
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keydown(KEYS[i])
-    else:
-    	pygame.time.wait(NOISE_FILTER)
-    	if GPIO.input(INPUT_CHANNEL[i]):
-    		keyup(KEYS[i])
+    gpioEventHandler(3)
     		
 # initialize ball_pos and ball_vel for new bal in middle of table
 # if direction is RIGHT, the ball's velocity is upper right, else upper left
@@ -442,10 +433,10 @@ def new_game():
 #    block[i].update()
 #    print "update block " + str(i)
     
-def updateBlocks():
+def updateBlocks(newSpeed):
     i = 0
     while i < len(blocks):
-        blocks[i].update()
+        blocks[i].update(newSpeed)
         if (blocks[i].movedOffScreen()):
             blocks.remove(blocks[i])
         i += 1
@@ -457,8 +448,12 @@ def updateCharacters():
         i += 1
 
 def updateAll():
+	global blockSpeed
+	
+	blockSpeed = blockSpeed * SPEED_UP_FACTOR
+	
     updateCharacters()
-    updateBlocks()
+    updateBlocks(int(blockSpeed))
     
 
 def drawBall():
@@ -580,4 +575,4 @@ while running:
             randomy = random.randrange(10, HEIGHT - 10)
             randomheight = random.randrange(10, 30)
             randomwidth = random.randrange(10, 100)
-            blocks.append(Block(len(blocks), WIDTH, randomy, randomwidth, randomheight))
+            blocks.append(Block(len(blocks), WIDTH, randomy, randomwidth, randomheight, int(blockSpeed)))
